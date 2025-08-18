@@ -1,0 +1,12 @@
+{
+    "name": "hello-world-job",
+    "tasks": [
+      {
+        "task_key": "hello_world_task",
+        "notebook_task": {
+          "notebook_path": "notebooks/hello_world_notebook.py"
+        },
+        "warehouse_id": "85e0e6f80c5e8f36"
+      }
+    ]
+  }
