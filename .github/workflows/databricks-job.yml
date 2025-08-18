@@ -22,7 +22,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install -r DataBricks/requirements.txt
+        python -m pip install -r requirements.txt
         
     - name: Run Hello World on SQL Warehouse
       env:
@@ -30,6 +30,6 @@ jobs:
         DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         DATABRICKS_WAREHOUSE_HTTP_PATH: ${{ secrets.DATABRICKS_WAREHOUSE_HTTP_PATH }}
       run: |
-        python DataBricks/create_and_run_job.py
+        python create_and_run_job.py
         echo "SQL Warehouse Hello World executed."
 ######
