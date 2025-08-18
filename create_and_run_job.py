@@ -31,8 +31,8 @@ def env(name):
 
 
 def api(method, path, version, *, json=None, params=None):
-    host = env("DATABRICK_WORKSPACE_URL")
-    token = env("DATABRICKS_ACCESS_TOKEN")
+    host = env("DATABRICKS_HOST")
+    token = env("DATABRICKS_TOKEN")
     if not host.startswith("http"):
         host = "https://" + host
     url = f"{host}/api/{version}/{path.lstrip('/')}"
