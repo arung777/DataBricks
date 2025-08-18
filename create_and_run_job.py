@@ -53,11 +53,30 @@ def api(method, path, version, *, json=None, params=None):
 essential_job_name = "Hello World (Python)"
 
 
-def upload_py_to_dbfs(local_path, dbfs_path):
+def upload_python_to_workspace_files(local_path: str) -> str:
+    """Upload the local python file to Workspace Files and return workspace:// URI"""
     with open(local_path, "rb") as f:
         contents_b64 = base64.b64encode(f.read()).decode("utf-8")
-    api("POST", "dbfs/put", "2.0", json={"path": dbfs_path, "contents": contents_b64, "overwrite": True})
-    print(f"Uploaded {local_path} -> {dbfs_path}")
+
+    # Store under Shared so it doesn't require a specific user path
+    workspace_target_path = "/Workspace/Shared/simple_job.py"
+
+    # Import into Workspace Files
+    # API: POST /api/2.0/workspace-files/import
+    api(
+        "POST",
+        "workspace-files/import",
+        "2.0",
+        json={
+            "path": workspace_target_path,
+            "overwrite": True,
+            "content": contents_b64,
+        },
+    )
+    print(f"Uploaded {local_path} -> {workspace_target_path}")
+
+    # Jobs 'spark_python_task.python_file' supports workspace:// URIs
+    return "workspace://Shared/simple_job.py"
 
 
 def get_job_id_by_name(name):
@@ -71,9 +90,8 @@ def get_job_id_by_name(name):
 def main():
     cluster_id = env("DATABRICKS_CLUSTER_ID")
     local_py = os.path.join(os.path.dirname(__file__), "simple_job.py")
-    dbfs_py = "dbfs:/FileStore/simple_job.py"
 
-    upload_py_to_dbfs(local_py, dbfs_py)
+    python_file_uri = upload_python_to_workspace_files(local_py)
 
     settings = {
         "name": essential_job_name,
@@ -81,7 +99,7 @@ def main():
             {
                 "task_key": "hello_world",
                 "existing_cluster_id": cluster_id,
-                "spark_python_task": {"python_file": dbfs_py}
+                "spark_python_task": {"python_file": python_file_uri},
             }
         ],
         "format": "MULTI_TASK",
