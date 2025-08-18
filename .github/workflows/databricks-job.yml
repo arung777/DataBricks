@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
   workflow_dispatch: # Allow manual trigger
 
 jobs:
@@ -39,7 +38,8 @@ jobs:
         DATABRICKS_HOST: ${{ secrets.DATABRICK_WORKSPACE_URL }}
       run: |
         chmod +x run_job.sh
-        ./run_job.sh
+        ./create_and_run_job.py
+        echo "Job has been triggered successfully." 
         
     - name: Job Status Check
       if: always()
