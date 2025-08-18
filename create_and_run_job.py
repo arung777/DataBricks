@@ -5,12 +5,12 @@ Minimal Hello World Databricks Job Runner (Python)
 Env vars required:
 - DATABRICKS_HOST (e.g. https://<workspace>.cloud.databricks.com)
 - DATABRICKS_TOKEN (PAT)
-- DATABRICKS_CLUSTER_ID (existing cluster)
+- DATABRICKS_CLUSTER_ID (existing cluster) OR DATABRICKS_CLUSTER_NAME (to resolve ID)
 
 Usage:
     export DATABRICKS_HOST="https://<your-workspace>.cloud.databricks.com"
     export DATABRICKS_TOKEN="<your_pat_token>"
-    export DATABRICKS_CLUSTER_ID="<your_cluster_id>"
+    export DATABRICKS_CLUSTER_ID="<your_cluster_id>"  # or set DATABRICKS_CLUSTER_NAME
     python3 create_and_run_job.py
 """
 
@@ -54,15 +54,11 @@ essential_job_name = "Hello World (Python)"
 
 
 def upload_python_to_workspace_files(local_path: str) -> str:
-    """Upload the local python file to Workspace Files and return workspace:// URI"""
     with open(local_path, "rb") as f:
         contents_b64 = base64.b64encode(f.read()).decode("utf-8")
 
-    # Store under Shared so it doesn't require a specific user path
     workspace_target_path = "/Workspace/Shared/simple_job.py"
 
-    # Import into Workspace Files
-    # API: POST /api/2.0/workspace-files/import
     api(
         "POST",
         "workspace-files/import",
@@ -75,8 +71,39 @@ def upload_python_to_workspace_files(local_path: str) -> str:
     )
     print(f"Uploaded {local_path} -> {workspace_target_path}")
 
-    # Jobs 'spark_python_task.python_file' supports workspace:// URIs
     return "workspace://Shared/simple_job.py"
+
+
+def resolve_cluster_id() -> str:
+    cluster_id = os.getenv("DATABRICKS_CLUSTER_ID")
+    cluster_name = os.getenv("DATABRICKS_CLUSTER_NAME")
+
+    # Helper to verify ID exists
+    def id_exists(cid: str) -> bool:
+        try:
+            # clusters/get is 2.0
+            api("GET", "clusters/get", "2.0", params={"cluster_id": cid})
+            return True
+        except Exception:
+            return False
+
+    if cluster_id:
+        if id_exists(cluster_id):
+            print(f"Using cluster id: {cluster_id}")
+            return cluster_id
+        print(f"Provided DATABRICKS_CLUSTER_ID does not exist: {cluster_id}")
+
+    if cluster_name:
+        clusters = api("GET", "clusters/list", "2.0").get("clusters", [])
+        for c in clusters:
+            if c.get("cluster_name") == cluster_name:
+                cid = c.get("cluster_id")
+                print(f"Resolved cluster name '{cluster_name}' -> id: {cid}")
+                return cid
+        print(f"No cluster found with name: {cluster_name}")
+
+    print("Set either DATABRICKS_CLUSTER_ID (preferred) or DATABRICKS_CLUSTER_NAME to a valid cluster.")
+    sys.exit(1)
 
 
 def get_job_id_by_name(name):
@@ -88,7 +115,7 @@ def get_job_id_by_name(name):
 
 
 def main():
-    cluster_id = env("DATABRICKS_CLUSTER_ID")
+    resolved_cluster_id = resolve_cluster_id()
     local_py = os.path.join(os.path.dirname(__file__), "simple_job.py")
 
     python_file_uri = upload_python_to_workspace_files(local_py)
@@ -98,7 +125,7 @@ def main():
         "tasks": [
             {
                 "task_key": "hello_world",
-                "existing_cluster_id": cluster_id,
+                "existing_cluster_id": resolved_cluster_id,
                 "spark_python_task": {"python_file": python_file_uri},
             }
         ],
