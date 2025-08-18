@@ -19,29 +19,22 @@ jobs:
       with:
         python-version: '3.9'
         
-    - name: Install Databricks CLI
+    - name: Install dependencies
       run: |
-        pip install databricks-cli
-        databricks --version
+        python -m pip install --upgrade pip
+        python -m pip install -r DataBricks/requirements.txt
         
-    - name: Configure Databricks
-      run: |
-        echo "Configuring Databricks CLI..."
-        databricks configure --token <<EOF
-        ${{ secrets.DATABRICK_WORKSPACE_URL }}
-        ${{ secrets.DATABRICKS_ACCESS_TOKEN }}
-        EOF
-        
-    - name: Run Databricks Job
+    - name: Run Databricks Job (Hello World)
       env:
         DATABRICKS_CLUSTER_ID: ${{ secrets.DATABRICKS_CLUSTER_ID }}
-        DATABRICKS_HOST: ${{ secrets.DATABRICK_WORKSPACE_URL }}
+        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
       run: |
-        chmod +x create_and_run_job.py
-        ./create_and_run_job.py
+        chmod +x DataBricks/create_and_run_job.py
+        ./DataBricks/create_and_run_job.py
         echo "Job has been triggered successfully." 
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        
+          
     - name: Job Status Check
       if: always()
       run: |
