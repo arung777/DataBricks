@@ -1,35 +1,71 @@
-name: Run Databricks SQL Warehouse Hello World
+# name: Run Databricks SQL Warehouse Hello World
+
+# on:
+#   push:
+#     branches:
+#       - main
+#   workflow_dispatch: # Allow manual trigger
+
+# jobs:
+#   run-sql-warehouse-hello:
+#     runs-on: ubuntu-latest
+    
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v3
+      
+#     - name: Set up Python
+#       uses: actions/setup-python@v4
+#       with:
+#         python-version: '3.9'
+        
+#     - name: Install dependencies
+#       run: |
+#         python -m pip install --upgrade pip
+#         python -m pip install -r requirements.txt
+        
+#     - name: Run Hello World on SQL Warehouse
+#       env:
+#         DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+#         DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+#         DATABRICKS_WAREHOUSE_HTTP_PATH: ${{ secrets.DATABRICKS_WAREHOUSE_HTTP_PATH }}
+#       run: |
+#         python create_and_run_job.py
+#         echo "SQL Warehouse Hello World executed."
+######
+
+
+name: Run Databricks Job on Push
 
 on:
   push:
     branches:
-      - main
+      - main   # trigger workflow only on main branch pushes
   workflow_dispatch: # Allow manual trigger
 
 jobs:
-  run-sql-warehouse-hello:
+  run-databricks-job:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-      
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-        
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install -r requirements.txt
-        
-    - name: Run Hello World on SQL Warehouse
-      env:
-        DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-        DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-        DATABRICKS_WAREHOUSE_HTTP_PATH: ${{ secrets.DATABRICKS_WAREHOUSE_HTTP_PATH }}
-      run: |
-        python create_and_run_job.py
-        echo "SQL Warehouse Hello World executed."
-######
+      # Step 1: Checkout repo
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: pip install requests
+
+      # Step 4: Run script to create & trigger job
+      - name: Create and Run Databricks Job
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          python create_and_run_job.py
