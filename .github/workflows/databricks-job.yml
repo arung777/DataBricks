@@ -1,0 +1,47 @@
+name: Run Databricks Job
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  run-databricks-job:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install Databricks CLI
+      run: |
+        pip install databricks-cli
+        databricks --version
+        
+    - name: Configure Databricks
+      run: |
+        echo "Configuring Databricks CLI..."
+        databricks configure --token <<EOF
+        ${{ secrets.DATABRICK_WORKSPACE_URL }}
+        ${{ secrets.DATABRICKS_ACCESS_TOKEN }}
+        EOF
+        
+    - name: Run Databricks Job
+      env:
+        DATABRICKS_CLUSTER_ID: ${{ secrets.DATABRICKS_CLUSTER_ID }}
+        DATABRICKS_HOST: ${{ secrets.DATABRICK_WORKSPACE_URL }}
+      run: |
+        chmod +x run_job.sh
+        ./run_job.sh
+        
+    - name: Job Status Check
+      if: always()
+      run: |
+        echo "Job execution completed. Check the logs above for results."
