@@ -40,8 +40,10 @@ jobs:
         chmod +x run_job.sh
         ./create_and_run_job.py
         echo "Job has been triggered successfully." 
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         
     - name: Job Status Check
       if: always()
       run: |
         echo "Job execution completed. Check the logs above for results."
+######
