@@ -30,8 +30,11 @@ jobs:
         DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
         DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
       run: |
-        chmod +x DataBricks/create_and_run_job.py
-        ./DataBricks/create_and_run_job.py
+        python -V
+        pwd
+        ls -la
+        ls -la DataBricks || true
+        python DataBricks/create_and_run_job.py
         echo "Job has been triggered successfully." 
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
           
