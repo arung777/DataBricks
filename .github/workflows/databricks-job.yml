@@ -33,8 +33,7 @@ jobs:
         python -V
         pwd
         ls -la
-        ls -la DataBricks || true
-        python DataBricks/create_and_run_job.py
+        python create_and_run_job.py
         echo "Job has been triggered successfully." 
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
           
