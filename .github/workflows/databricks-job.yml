@@ -1,4 +1,4 @@
-name: Run Databricks Job
+name: Run Databricks SQL Warehouse Hello World
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch: # Allow manual trigger
 
 jobs:
-  run-databricks-job:
+  run-sql-warehouse-hello:
     runs-on: ubuntu-latest
     
     steps:
@@ -22,24 +22,14 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install requests>=2.28.0
+        python -m pip install -r DataBricks/requirements.txt
         
-    - name: Run Databricks Job (Hello World)
+    - name: Run Hello World on SQL Warehouse
       env:
-        DATABRICKS_CLUSTER_ID: ${{ secrets.DATABRICKS_CLUSTER_ID }}
-        DATABRICKS_CLUSTER_NAME: ${{ secrets.DATABRICKS_CLUSTER_NAME }}
         DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
         DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        DATABRICKS_WAREHOUSE_HTTP_PATH: ${{ secrets.DATABRICKS_WAREHOUSE_HTTP_PATH }}
       run: |
-        python -V
-        pwd
-        ls -la
-        python create_and_run_job.py
-        echo "Job has been triggered successfully." 
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-          
-    - name: Job Status Check
-      if: always()
-      run: |
-        echo "Job execution completed. Check the logs above for results."
+        python DataBricks/create_and_run_job.py
+        echo "SQL Warehouse Hello World executed."
 ######
